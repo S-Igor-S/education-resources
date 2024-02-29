@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Enums\Bot;
-use App\Services\Telegram\ServiceFacade;
+use App\Services\TelegramBot\ServiceFacade;
 use Exception;
 use Illuminate\Console\Command;
 use Psr\Container\ContainerExceptionInterface;
