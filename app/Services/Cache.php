@@ -50,7 +50,7 @@ class Cache
      */
     public function getValue(string $ValueName): mixed
     {
-        return cache()->get($ValueName) ?? 0;
+        return cache()->get($ValueName) ?? null;
     }
 
     /**
