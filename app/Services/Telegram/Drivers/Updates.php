@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\TelegramBot;
+namespace App\Services\Telegram\Drivers;
 
 use App\Enums\Bot;
 use Illuminate\Support\Collection;
@@ -22,39 +22,38 @@ class Updates
 
     /**
      * @param  array  $updates
-     * @param  string  $updatesType
      * @return Collection
      */
-    public function validate(array $updates, string $updatesType): Collection
+    public function validate(array $updates): Collection
     {
-        if ($updatesType === Bot::GreetingCommand->value) {
-            $updates = $this->getGreetingUpdates($updates);
-        } elseif ($updatesType === Bot::ResourceCommand->value) {
-            $updates = $this->getResourcesUpdates($updates);
-        }
+        $botCommands = array_column(Bot::cases(), 'value');
+        $updates = array_filter($updates, function ($update) use ($botCommands) {
+            $messageKeys = array_keys($update['message']);
+            return true === isset($update['message']['text']) && true === $this->isCommand($update['message']['text'],
+                        $botCommands);
+        });
         return $this->removeDuplicates($updates);
     }
 
     /**
      * @param  Collection  $updates
-     * @param  string  $command
      * @return Collection
      */
-    public function sort(Collection $updates, string $command): Collection
+    public function sort(Collection $updates): Collection
     {
-        if ($command === Bot::GreetingCommand->value) {
-            $updates = collect(['success' => $updates]);
-        } elseif ($command === Bot::ResourceCommand->value) {
-            $updates = $updates->mapToGroups(function ($update) use ($command) {
+        return $updates->mapToGroups(function ($update) {
+            if (true === $this->isCommand($update['text'], Bot::GreetingCommand->value) ) {
+                $update['command'] = Bot::GreetingCommand->value;
+                return ['success' => $update];
+            } elseif (true === $this->isCommand($update['text'], Bot::ResourceCommand->value)) {
                 $explodedMessage = explode(' ', $update['text']);
+                $update['command'] = Bot::ResourceCommand->value;
                 if (true === isset($explodedMessage[1]) && filter_var($explodedMessage[1], FILTER_VALIDATE_URL)) {
                     return ['success' => $update];
                 }
-                return ['wrong_message_format' => $update];
-            });
-        }
-
-        return $updates;
+            }
+            return ['wrong_message_format' => $update];
+        });
     }
 
     /**
@@ -77,27 +76,15 @@ class Updates
         return collect($updates)->unique();
     }
 
-    /**
-     * @param  array  $updates
-     * @return array
-     */
-    private function getGreetingUpdates(array $updates): array
+    private function isCommand(string $message, array|string $command): bool
     {
-        return array_filter($updates, function ($update) {
-            $messageKeys = array_keys($update['message']);
-            return true === in_array('new_chat_participant', $messageKeys) ||
-                (true === isset($update['message']['text']) && $update['message']['text'] === '/start');
-        });
-    }
+        $explodedMessage = explode(' ', $message);
 
-    /**
-     * @param  array  $updates
-     * @return array
-     */
-    private function getResourcesUpdates(array $updates): array
-    {
-        return array_filter($updates, function ($update) {
-            return true === isset($update['message']['text']) && str_starts_with($update['message']['text'], '/save');
-        });
+        if (is_string($command) && $explodedMessage[0] === $command) {
+            return true;
+        } elseif (is_array($command) && true === in_array($explodedMessage[0], $command)) {
+            return true;
+        }
+        return false;
     }
 }

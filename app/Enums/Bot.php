@@ -4,9 +4,9 @@ namespace App\Enums;
 
 enum Bot: string
 {
-    case GreetingCommand = 'greeting';
+    case GreetingCommand = '/start';
 
-    case ResourceCommand = 'resource';
+    case ResourceCommand = '/save';
 
     public static function apiRequest(string $api = ''): string
     {

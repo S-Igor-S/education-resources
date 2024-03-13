@@ -2,11 +2,18 @@
 
 namespace App\Interfaces;
 
+use Illuminate\Support\Collection;
+
 interface BotInterface
 {
     /**
-     * @param  string  $command
+     * @param  Collection  $updates
      * @return void
      */
-    public function sendMessage(string $command):void;
+    public function sendMessage(Collection $updates):void;
+
+    /**
+     * @return Collection
+     */
+    public function getUpdates():Collection;
 }
