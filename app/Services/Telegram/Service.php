@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
-class ServiceFacade implements BotInterface
+class Service implements BotInterface
 {
     /**
      * @var Updates

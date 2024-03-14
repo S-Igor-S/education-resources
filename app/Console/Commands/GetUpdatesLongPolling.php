@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\Telegram\ServiceFacade;
+use App\Services\Telegram\Service;
 use Illuminate\Console\Command;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -33,7 +33,7 @@ class GetUpdatesLongPolling extends Command
      */
     public function handle(): void
     {
-        $bot = new ServiceFacade();
+        $bot = new Service();
         while($this->poll === true) {
             try {
                 $updates = $bot->getUpdates();
