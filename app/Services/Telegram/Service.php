@@ -5,12 +5,13 @@ namespace App\Services\Telegram;
 use App\Interfaces\BotInterface;
 use App\Services\Cache;
 use App\Services\Telegram\Drivers\Messages;
+use App\Services\Telegram\Drivers\Storage;
 use App\Services\Telegram\Drivers\Updates;
 use Illuminate\Support\Collection;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 
-class ServiceFacade implements BotInterface
+class Service implements BotInterface
 {
     /**
      * @var Updates
@@ -23,6 +24,11 @@ class ServiceFacade implements BotInterface
     private Messages $messages;
 
     /**
+     * @var Storage
+     */
+    private Storage $storage;
+
+    /**
      * @var Cache
      */
     private Cache $cache;
@@ -31,16 +37,8 @@ class ServiceFacade implements BotInterface
     {
         $this->updates = new Updates();
         $this->messages = new Messages();
+        $this->storage = new Storage();
         $this->cache = Cache::getInstance();
-    }
-
-    /**
-     * @param  Collection  $updates
-     * @return void
-     */
-    public function sendMessage(Collection $updates): void
-    {
-        $this->messages->send($updates);
     }
 
     /**
@@ -55,6 +53,26 @@ class ServiceFacade implements BotInterface
         $this->cache->cacheOffset($updates, $offset, $cacheValueName);
         $updates = $this->updates->validate($updates);
         return $this->updates->sort($updates);
+    }
+
+    /**
+     * @param  Collection  $updates
+     * @return void
+     */
+    public function sendMessage(Collection $updates): void
+    {
+        $this->messages->send($updates);
+    }
+
+    /**
+     * @param  Collection  $updates
+     * @return Collection
+     */
+    public function save(Collection $updates): Collection
+    {
+        $updates = $this->storage->validate($updates);
+        $this->storage->save($updates['success']);
+        return $updates;
     }
 
 }
