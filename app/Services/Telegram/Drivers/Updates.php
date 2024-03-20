@@ -28,9 +28,10 @@ class Updates
     {
         $botCommands = array_column(Bot::cases(), 'value');
         $updates = array_filter($updates, function ($update) use ($botCommands) {
-            $messageKeys = array_keys($update['message']);
-            return true === isset($update['message']['text']) && true === $this->isCommand($update['message']['text'],
-                        $botCommands);
+            return true === isset($update['message']['text']) && true === $this->isCommand(
+                    $update['message']['text'],
+                    $botCommands
+                );
         });
         return $this->removeDuplicates($updates);
     }
@@ -42,7 +43,7 @@ class Updates
     public function sort(Collection $updates): Collection
     {
         return $updates->mapToGroups(function ($update) {
-            if (true === $this->isCommand($update['text'], Bot::GreetingCommand->value) ) {
+            if (true === $this->isCommand($update['text'], Bot::GreetingCommand->value)) {
                 $update['command'] = Bot::GreetingCommand->value;
                 return ['success' => $update];
             } elseif (true === $this->isCommand($update['text'], Bot::ResourceCommand->value)) {
@@ -66,7 +67,10 @@ class Updates
             if (true === array_key_exists('from', $update['message']) ||
                 true === array_key_exists('new_chat_member', $update['message'])) {
                 return [
+                    'user_id' => $update['message']['from']['id'],
                     'chat_id' => $update['message']['chat']['id'],
+                    'first_name' => $update['message']['from']['first_name'],
+                    'last_name' => $update['message']['from']['last_name'],
                     'text' => $update['message']['text'] ?? '',
                     'username' => $update['message']['new_chat_member']['username'] ?? $update['message']['from']['username'] ?? '',
                 ];
@@ -76,6 +80,11 @@ class Updates
         return collect($updates)->unique();
     }
 
+    /**
+     * @param  string  $message
+     * @param  array|string  $command
+     * @return bool
+     */
     private function isCommand(string $message, array|string $command): bool
     {
         $explodedMessage = explode(' ', $message);
