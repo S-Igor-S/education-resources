@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+// use Illuminate\Storage\Console\Seeds\WithoutModelEvents;
+use App\Models\Resource;
+use App\Models\TelegramUser;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,11 +14,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        TelegramUser::factory(100)->create()->each(function ($telegramUser) {
+            Resource::factory(rand(5, 30))->for($telegramUser)->create();
+        });
     }
 }
